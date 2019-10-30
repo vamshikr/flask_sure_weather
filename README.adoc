@@ -1,0 +1,129 @@
+
+## Sure Weather
+A REST API to get current temperature for a given a location specified as (`latitude` and `longitude`) pair or a `zipcode`. The API relies upon externel weather services such as **NOAA**, **Weather.com** and **Accuweather**. https://aiohttp.readthedocs.io/en/stable/[aiohttp] is used to build this application.
+
+### Setup
+Follow these steps to setup the application
+
+#### Clone and start mock-weather-api Helper Application that emulates **NOAA**, **Weather.com** and **Accuweather**.
+```
+git clone https://github.com/shipwell/mock-weather-api.git && \
+  cd mock-weather-api && \
+  python3 -m venv venv && \
+  source venv/bin/activate && \
+  pip3 install -r requirements.txt && \
+  FLASK_APP=app.py FLASK_DEBUG=1 flask run
+```
+
+#### In a seperate directory, clone the `sure_weather` repository
+```
+git clone https://github.com/vamshikr/sure_weather.git && \
+cd sure_weather
+```
+
+#### Create a virtual environment
+```
+python3 -m venv venv && source venv/bin/activate
+```
+
+#### Install dependencies
+```
+pip3 install -r requirements.txt
+```
+
+
+#### Export environment variables
+```
+export FLASK_APP="http://localhost:5000"
+export WEATHERDOTCOM_URL="$FLASK_APP"
+export ACCUWEATHER_URL="$FLASK_APP"
+export NOAA_URL="$FLASK_APP"
+```
+
+#### If using Google Maps to verify location and get latitude and longitude from a zipcode
+```
+export GOOGLE_MAPS_APIKEY=<your google maps api key>
+```
+
+#### Start the sure_weather application
+```
+./run_server.sh
+```
+##### Output
+```
+20-10-2019:16:32:55,679 INFO     [__init__.py:12] Adding weather.com
+20-10-2019:16:32:55,679 INFO     [__init__.py:15] weather.com added
+20-10-2019:16:32:55,679 INFO     [__init__.py:12] Adding accuweather
+20-10-2019:16:32:55,679 INFO     [__init__.py:15] accuweather added
+20-10-2019:16:32:55,679 INFO     [__init__.py:12] Adding noaa
+20-10-2019:16:32:55,679 INFO     [__init__.py:15] noaa added
+======== Running on http://127.0.0.1:8080 ========
+```
+
+#### In another terminal session, run functional tests
+```
+./run_tests.sh
+```
+
+If all the above steps pass, then the `sure_weather` application is ready to use.
+
+### Using the API
+
+#### API Endpoint
+* The API endpoint is http://localhost:8080/current_weather
+* Only support `GET` method
+
+#### Request Parameters
+[[request-parameters]]
+.Request Parameters:
+[width="99%",cols="30%,40%v,30%",options="header",style="literal"]
+|==========================
+| Key | Value | Description
+| `latitude` | floating-point number between `-90` and `+90` | Required if using along with `longitude`
+| `longitude` | floating-point number between `-180` and `+180` | Required if using along with `latitude`
+|`zipcode`| a positive 5-6 digit number, Example: `78728` | Optional, use either `zipcode` or (`latitude`, `longitude`) pair
+|`services`| comma separated string of service names, example: `services=accuweather,noaa' | Optional, if not specified uses all the services
+|==========================
+
+
+##### Example 1
+```
+curl -X GET --insecure --globoff 'http://localhost:8080/current_weather?latitude=33.33&longitude=44.44&services=accuweather,noaa'
+```
+
+.Response
+```
+{
+  "latitude": 30.4570672,
+  "longitude": -97.68194299999999,
+  "datetime": "2019-10-20T22:15:12",
+  "services": [
+    "weather.com",
+    "accuweather",
+    "noaa"
+  ],
+  "temperature": {
+    "fahrenheit": 49,
+    "celsius": 9.44
+  }
+}
+```
+
+#### Response JSON
+[[response-attributes]]
+.Request JSON Attributes:
+[width="99%",cols="40%,60%v",options="header",style="literal"]
+|==========================
+| Key | Value
+| `latitude` | Floating-point number between `-90` and `+90`
+| `longitude` | Floating-point number between `-180` and `+180`
+|`datetime`| Timestamp in UTC ISO-8601 format
+|`services`| List of services used in getting the current weather data
+|`temperature.fahrenheit` | Current temperature in `fahrenheit`
+| `temperature.celsius`| Current temperature in `celsius`
+|==========================
+
+##### Example 2
+```
+curl -X GET --insecure --globoff 'http://localhost:8080/current_weather?zipcode=78728'
+```

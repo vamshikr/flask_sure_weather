@@ -1,0 +1,10 @@
+# Whitelist .dockerignore
+
+# ignore everything
+*
+
+# whitelist these files / dirs
+!requirements.txt
+!*.sh
+!flask_weather/
+

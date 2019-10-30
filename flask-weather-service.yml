@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: shipwell
+  name: flask-weather-api
+  labels:
+    app: flask-weather-api
+spec:
+  selector:
+    matchLabels:
+      app: flask-weather-api
+  replicas: 1
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: flask-weather-api
+    spec:
+      containers:
+      - image: vamshikrb/flask-weather:latest
+        imagePullPolicy: Always
+        name: flask-weather-api
+        ports:
+          - containerPort: 9090
+        env:
+          - name: GOOGLE_MAPS_APIKEY
+            valueFrom:
+              configMapKeyRef:
+                name: externel-services
+                key: GOOGLE_MAPS_APIKEY
+          - name: FLASK_APP
+            valueFrom:
+              configMapKeyRef:
+                name: externel-services
+                key: FLASK_APP
+          - name: WEATHERDOTCOM_URL
+            valueFrom:
+              configMapKeyRef:
+                name: externel-services
+                key: WEATHERDOTCOM_URL
+          - name: ACCUWEATHER_URL
+            valueFrom:
+              configMapKeyRef:
+                name: externel-services
+                key: ACCUWEATHER_URL
+          - name: NOAA_URL
+            valueFrom:
+              configMapKeyRef:
+                name: externel-services
+                key: NOAA_URL
+                
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: shipwell
+  name: flask-weather-api-lb
+spec:
+  type: NodePort
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: flask-weather-api
